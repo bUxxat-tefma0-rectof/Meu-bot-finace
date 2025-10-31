@@ -1,0 +1,30 @@
+{
+  "Streaming": [
+    {
+      "name": "Netflix Premium",
+      "price": 29.90,
+      "description": "Acesso Netflix Premium 4K por 30 dias",
+      "stock": 15,
+      "warranty": 30,
+      "category": "Streaming"
+    },
+    {
+      "name": "Spotify Premium",
+      "price": 14.90,
+      "description": "Acesso Spotify Premium por 60 dias",
+      "stock": 25,
+      "warranty": 60,
+      "category": "Streaming"
+    }
+  ],
+  "Games": [
+    {
+      "name": "Steam Premium",
+      "price": 39.90,
+      "description": "Conta Steam com jogos premium",
+      "stock": 8,
+      "warranty": 90,
+      "category": "Games"
+    }
+  ]
+}
