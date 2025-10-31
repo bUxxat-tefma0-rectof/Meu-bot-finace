@@ -1,0 +1,12 @@
+{
+  "users": {},
+  "admins": ["6995978182"],
+  "products": {},
+  "transactions": [],
+  "affiliates": {},
+  "settings": {
+    "maintenance": false,
+    "logs_destination": "",
+    "support_link": "https://t.me/seu_suporte"
+  }
+}
