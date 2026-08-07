@@ -1,0 +1,171 @@
+# ===========================================
+# LOJA DE GIFTCARDS - Git Ignore
+# ===========================================
+
+# -------------------------------------------
+# Python
+# -------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+eggs/
+*.egg
+*.whl
+*.tar.gz
+
+# Ambientes virtuais
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+.virtualenv/
+
+# -------------------------------------------
+# Variáveis de Ambiente (CRÍTICO!)
+# -------------------------------------------
+.env
+.env.local
+.env.production
+.env.staging
+*.env
+
+# NUNCA commitar o .env com dados reais!
+# Mantenha um .env.example sem dados sensíveis
+
+# -------------------------------------------
+# Banco de Dados
+# -------------------------------------------
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Migrations
+alembic/versions/*.pyc
+
+# -------------------------------------------
+# Mídia e Uploads
+# -------------------------------------------
+storage/media/*
+!storage/media/.gitkeep
+!storage/media/README.md
+
+# Manter o diretório mas ignorar conteúdo
+storage/media/uploads/*
+!storage/media/uploads/.gitkeep
+
+# -------------------------------------------
+# Logs
+# -------------------------------------------
+*.log
+logs/*.log
+!logs/.gitkeep
+*.log.*
+*.log?.gz
+
+# -------------------------------------------
+# Arquivos de Persistência
+# -------------------------------------------
+*.pickle
+*.pkl
+bot_persistence.pickle
+session.data
+
+# -------------------------------------------
+# IDE e Editores
+# -------------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# -------------------------------------------
+# Sistema Operacional
+# -------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# -------------------------------------------
+# Docker
+# -------------------------------------------
+docker-compose.override.yml
+.docker/
+*.dockerignore
+
+# -------------------------------------------
+# Testes e Cobertura
+# -------------------------------------------
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+*.cover
+.hypothesis/
+
+# -------------------------------------------
+# Outros
+# -------------------------------------------
+*.bak
+*.tmp
+*.temp
+*.swp
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Arquivos de configuração local
+config.local.py
+settings.local.py
+
+# Chaves e certificados
+*.key
+*.pem
+*.crt
+*.cer
+*.p12
+*.pfx
+!example.key
+
+# Dados sensíveis
+credentials.json
+service-account.json
+client-secret.json
+
+# Backup automático
+*_backup_*
+*.backup
+backup/
+backups/
+
+# -------------------------------------------
+# Render Deploy
+# -------------------------------------------
+render.yaml
+.render-build-script.sh
+
+# -------------------------------------------
+# Arquivos específicos do projeto
+# -------------------------------------------
+# Nada específico por enquanto
