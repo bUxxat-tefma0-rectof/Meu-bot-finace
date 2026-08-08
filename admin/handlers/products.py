@@ -392,4 +392,86 @@ async def admin_product_save_edit(update: Update, context: ContextTypes.DEFAULT_
             await update.message.reply_text(
                 f"✅ Campo '{field}' atualizado com sucesso!",
                 reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("📋
+                    [InlineKeyboardButton("📋 Voltar", callback_data=f"admin_edit_product_{product_id}")]
+                ])
+            )
+        else:
+            await update.message.reply_text(
+                f"❌ Erro ao atualizar: {result.get('error')}",
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("⬅️ Voltar", callback_data=f"admin_edit_product_{product_id}")]
+                ])
+            )
+    
+    # Limpa dados temporários
+    context.user_data.pop('admin_edit_field', None)
+    
+    return ConversationHandler.END
+
+
+async def admin_product_delete(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Exclui um produto"""
+    query = update.callback_query
+    admin_id = update.effective_user.id
+    
+    if not settings.is_admin(admin_id):
+        await query.answer("Acesso negado!", show_alert=True)
+        return ConversationHandler.END
+    
+    await query.answer()
+    
+    product_service = ProductService()
+    products = await product_service.get_all_products_admin()
+    
+    keyboard_buttons = []
+    for product in products:
+        keyboard_buttons.append([
+            InlineKeyboardButton(
+                f"🗑️ {product['name']}",
+                callback_data=f"admin_confirm_delete_{product['id']}"
+            )
+        ])
+    
+    keyboard_buttons.append([
+        InlineKeyboardButton("⬅️ Cancelar", callback_data="admin_products_list")
+    ])
+    
+    await query.edit_message_text(
+        "🗑️ Selecione o produto para EXCLUIR:\n\n⚠️ Esta ação não pode ser desfeita!",
+        reply_markup=InlineKeyboardMarkup(keyboard_buttons)
+    )
+    
+    return PRODUCT_EDIT_STATE
+
+
+async def admin_product_confirm_delete(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Confirma exclusão do produto"""
+    query = update.callback_query
+    admin_id = update.effective_user.id
+    
+    if not settings.is_admin(admin_id):
+        return ConversationHandler.END
+    
+    await query.answer()
+    
+    product_id = int(query.data.replace("admin_confirm_delete_", ""))
+    
+    product_service = ProductService()
+    result = await product_service.delete_product(product_id, admin_id)
+    
+    if result['success']:
+        await query.edit_message_text(
+            "✅ Produto excluído com sucesso!",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("📋 Ver Produtos", callback_data="admin_products_list")]
+            ])
+        )
+    else:
+        await query.edit_message_text(
+            f"❌ Erro ao excluir: {result.get('error')}",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("⬅️ Voltar", callback_data="admin_products_list")]
+            ])
+        )
+    
+    return ConversationHandler.END
