@@ -10,9 +10,8 @@ from telegram.constants import ParseMode
 from telegram.error import TelegramError
 
 from config import settings
-from database.connection import get_session
 from services.users import UserService
-from services.messages import MessageService
+from services.notifications import NotificationService
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +67,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             referrer_id = int(context.args[0])
             if referrer_id != user_id:
                 context.user_data['referrer_id'] = referrer_id
-                logger.info(f"Usuário {user_id} indicado por {referrer_id}")
         except (ValueError, TypeError):
             pass
     
@@ -84,17 +82,15 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     is_subscribed = await check_channel_subscription(user_id, context)
     
     if not is_subscribed:
-        keyboard = [
+        keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton("📢 ENTRAR NO CANAL", url=settings.REQUIRED_CHANNEL_LINK)],
             [InlineKeyboardButton("✅ VERIFICAR AGORA", callback_data="verify_subscription")]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
+        ])
         
-        blocked_message = settings.MESSAGES.get("BLOCKED_MESSAGE", settings.MESSAGES["blocked"]).format(
-            channel_link=settings.REQUIRED_CHANNEL_LINK
-        )
+        blocked_msg = settings.MESSAGES.get("BLOCKED_MESSAGE", settings.MESSAGES.get("blocked", "🚫 Acesso Bloqueado\n\nEntre no canal para usar o bot."))
+        blocked_msg = blocked_msg.format(channel_link=settings.REQUIRED_CHANNEL_LINK)
         
-        await update.message.reply_text(blocked_message, reply_markup=reply_markup, parse_mode=ParseMode.HTML)
+        await update.message.reply_text(blocked_msg, reply_markup=keyboard)
         return BLOCKED_STATE
     
     return await show_welcome(update, context)
@@ -113,7 +109,7 @@ async def verify_subscription(update: Update, context: ContextTypes.DEFAULT_TYPE
         return await show_welcome(update, context)
     else:
         await query.edit_message_text(
-            "❌ Você ainda não entrou no canal!\n\n📢 Entre no canal obrigatório e depois clique em VERIFICAR.",
+            "❌ Você ainda não entrou no canal!\n\n📢 Entre no canal obrigatório e clique em VERIFICAR.",
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("📢 ENTRAR NO CANAL", url=settings.REQUIRED_CHANNEL_LINK)],
                 [InlineKeyboardButton("✅ VERIFICAR NOVAMENTE", callback_data="verify_subscription")]
@@ -136,8 +132,18 @@ async def show_welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_service = UserService()
     user_data = await user_service.get_user(user_id)
     
-    welcome_msg = settings.MESSAGES.get("WELCOME_MESSAGE", settings.MESSAGES.get("welcome", "Bem-vindo! 🎁")).format(
+    # CORRIGIDO: Usa MESSAGES.get() em vez de WELCOME_MESSAGE direto
+    welcome_template = settings.MESSAGES.get(
+        "WELCOME_MESSAGE",
+        settings.MESSAGES.get(
+            "welcome",
+            "Olá {first_name}! Bem-vindo! 🎁\n💰 Saldo: R$ {saldo}\n🛒 Compras: {compras}"
+        )
+    )
+    
+    welcome_msg = welcome_template.format(
         telegram_id=user_id,
+        first_name=user_data.get('first_name', 'Usuário'),
         saldo=f"{user_data.get('balance', 0):.2f}".replace('.', ','),
         compras=user_data.get('total_purchases', 0)
     )
@@ -146,12 +152,14 @@ async def show_welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = await get_main_menu_keyboard(context)
     
     if update.callback_query:
-        await update.callback_query.message.reply_text(welcome_msg, reply_markup=keyboard, parse_mode=ParseMode.HTML)
+        await update.callback_query.message.reply_text(welcome_msg, reply_markup=keyboard)
     else:
-        await update.message.reply_text(welcome_msg, reply_markup=keyboard, parse_mode=ParseMode.HTML)
+        await update.message.reply_text(welcome_msg, reply_markup=keyboard)
     
     if user_data.get('is_new', False):
-        from services.notifications import NotificationService
-        await NotificationService().notify_new_user(user_id, context)
+        try:
+            await NotificationService().notify_new_user(user_id, context)
+        except Exception as e:
+            logger.error(f"Erro ao notificar: {e}")
     
     return ConversationHandler.END
