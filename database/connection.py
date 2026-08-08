@@ -135,11 +135,10 @@ async def create_tables() -> None:
     async with engine.begin() as conn:
         # Importa todos os modelos para registrar no Base
         from database.models import (  # noqa: F401
-            user, admin, category, product, stock_item,
-            order, order_item, payment, pix_transaction,
-            affiliate, affiliate_commission, button,
-            message_template, system_setting, notification,
-            media, audit_log, user_session
+            User, Admin, AdminPermission, Category, Product, ProductMedia,
+            StockItem, Order, OrderItem, Payment, PixTransaction,
+            Affiliate, AffiliateCommission, Button, MessageTemplate,
+            SystemSetting, Notification, Media, AuditLog, UserSession,
         )
         
         await conn.run_sync(Base.metadata.create_all)
