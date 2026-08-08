@@ -1,6 +1,5 @@
 """
 Modelos ORM do banco de dados
-Cada arquivo representa uma tabela/entidade
 """
 
 from database.models.user import User
