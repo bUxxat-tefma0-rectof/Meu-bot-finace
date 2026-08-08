@@ -4,7 +4,7 @@ Gerencia limpeza de mensagens temporárias e dados antigos
 """
 
 import logging
-from typing import List, Optional
+from typing import List, Optional, Dict
 from datetime import datetime, timedelta
 
 from config import settings
@@ -26,7 +26,7 @@ class CleanupService:
     def __init__(self):
         # Registro de mensagens para limpeza
         # {chat_id: [(message_id, timestamp), ...]}
-        self._temp_messages = {}
+        self._temp_messages: Dict[int, List[Dict]] = {}
     
     def register_message(
         self,
@@ -92,7 +92,6 @@ class CleanupService:
                 age = (now - msg["timestamp"]).total_seconds()
                 
                 if age >= msg["ttl"]:
-                    # Mensagem expirada - tenta deletar
                     try:
                         await context.bot.delete_message(
                             chat_id=chat_id,
@@ -100,7 +99,6 @@ class CleanupService:
                         )
                         total_cleaned += 1
                     except Exception as e:
-                        # Mensagem pode já ter sido deletada
                         logger.debug(f"Erro ao deletar mensagem {msg['message_id']}: {e}")
                 else:
                     remaining.append(msg)
@@ -194,7 +192,3 @@ class CleanupService:
             "pending_messages": total_messages,
             "active_chats": total_chats,
         }
-
-
-# Import adicional para o dict
-from typing import Dict
