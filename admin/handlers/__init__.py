@@ -1,0 +1,3 @@
+"""
+Handlers do painel administrativo
+"""
