@@ -2,11 +2,6 @@
 LOJA DE GIFTCARDS - Sistema Principal
 Bot Telegram + Painel Admin + Pagamentos PIX
 Versão: 1.0.0
-
-Para deploy no Render:
-- Configure as variáveis de ambiente no painel do Render
-- Use o comando: python main.py
-- Tipo: Worker (não Web Service)
 """
 
 import asyncio
@@ -14,6 +9,8 @@ import logging
 import sys
 import os
 from pathlib import Path
+import nest_asyncio
+nest_asyncio.apply()
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -111,81 +108,26 @@ class GiftCardBot:
             raise
 
     def _register_handlers(self):
-        # Start
-        self.application.add_handler(ConversationHandler(
-            entry_points=[CommandHandler('start', start_command)],
-            states={BLOCKED_STATE: [CallbackQueryHandler(verify_subscription, pattern='^verify_subscription$'), CallbackQueryHandler(subscription_callback, pattern='^subscribe_channel$')]},
-            fallbacks=[CommandHandler('start', start_command)],
-            name="start", persistent=True, allow_reentry=True))
-        # Menu
-        self.application.add_handler(ConversationHandler(
-            entry_points=[CommandHandler('menu', menu_command), CallbackQueryHandler(menu_callback, pattern='^menu_main$'), CallbackQueryHandler(menu_callback, pattern='^back_to_menu$')],
-            states={MENU_MAIN: [CallbackQueryHandler(button_callback, pattern='^btn_')]},
-            fallbacks=[CommandHandler('menu', menu_command)],
-            name="menu", persistent=True, allow_reentry=True))
-        # Catalogo
-        self.application.add_handler(ConversationHandler(
-            entry_points=[CallbackQueryHandler(catalog_command, pattern='^btn_buy_giftcard$'), CallbackQueryHandler(catalog_command, pattern='^back_to_catalog$')],
-            states={CATALOG_STATE: [CallbackQueryHandler(category_selection, pattern='^category_'), CallbackQueryHandler(catalog_command, pattern='^back_to_catalog$'), CallbackQueryHandler(menu_callback, pattern='^menu_main$')]},
-            fallbacks=[CommandHandler('menu', menu_command)],
-            name="catalog", persistent=True, allow_reentry=True))
-        # Produtos
-        self.application.add_handler(ConversationHandler(
-            entry_points=[CallbackQueryHandler(product_view, pattern='^product_')],
-            states={PRODUCT_STATE: [CallbackQueryHandler(confirm_purchase, pattern='^confirm_purchase_'), CallbackQueryHandler(category_selection, pattern='^back_to_category$'), CallbackQueryHandler(menu_callback, pattern='^menu_main$'), CallbackQueryHandler(menu_callback, pattern='^go_to_wallet$')]},
-            fallbacks=[CommandHandler('menu', menu_command)],
-            name="product", persistent=True, allow_reentry=True))
-        # Perfil
-        self.application.add_handler(ConversationHandler(
-            entry_points=[CallbackQueryHandler(profile_command, pattern='^btn_my_profile$')],
-            states={PROFILE_STATE: [CallbackQueryHandler(profile_callback, pattern='^go_to_wallet$'), CallbackQueryHandler(profile_callback, pattern='^btn_history$'), CallbackQueryHandler(profile_callback, pattern='^btn_affiliates$'), CallbackQueryHandler(menu_callback, pattern='^menu_main$')]},
-            fallbacks=[CommandHandler('menu', menu_command)],
-            name="profile", persistent=True, allow_reentry=True))
-        # Wallet
-        self.application.add_handler(ConversationHandler(
-            entry_points=[CallbackQueryHandler(wallet_menu, pattern='^btn_add_balance$'), CallbackQueryHandler(wallet_menu, pattern='^go_to_wallet$')],
-            states={WALLET_STATE: [CallbackQueryHandler(add_balance, pattern='^add_balance_pix$'), CallbackQueryHandler(add_balance, pattern='^quick_values$'), CallbackQueryHandler(menu_callback, pattern='^menu_main$')], PIX_VALUE_STATE: [CallbackQueryHandler(process_pix_value, pattern='^pix_value_'), MessageHandler(filters.TEXT & ~filters.COMMAND, process_pix_value), CallbackQueryHandler(menu_callback, pattern='^menu_main$')]},
-            fallbacks=[CommandHandler('menu', menu_command)],
-            name="wallet", persistent=True, allow_reentry=True))
-        # PIX
-        self.application.add_handler(ConversationHandler(
-            entry_points=[CommandHandler('pix', pix_command), CallbackQueryHandler(pix_check, pattern='^check_pix_'), CallbackQueryHandler(pix_cancel, pattern='^cancel_pix_')],
-            states={PIX_STATE: [CallbackQueryHandler(pix_check, pattern='^check_pix_'), CallbackQueryHandler(pix_cancel, pattern='^cancel_pix_'), CallbackQueryHandler(menu_callback, pattern='^menu_main$')]},
-            fallbacks=[CommandHandler('menu', menu_command)],
-            name="pix", persistent=True, allow_reentry=True))
-        # Historico
-        self.application.add_handler(ConversationHandler(
-            entry_points=[CallbackQueryHandler(history_command, pattern='^btn_history$')],
-            states={HISTORY_STATE: [CallbackQueryHandler(history_detail, pattern='^history_page_'), CallbackQueryHandler(history_detail, pattern='^history_detail_'), CallbackQueryHandler(history_detail, pattern='^history_back$'), CallbackQueryHandler(menu_callback, pattern='^menu_main$')]},
-            fallbacks=[CommandHandler('menu', menu_command)],
-            name="history", persistent=True, allow_reentry=True))
-        # Afiliados
-        self.application.add_handler(ConversationHandler(
-            entry_points=[CallbackQueryHandler(affiliates_command, pattern='^btn_affiliates$')],
-            states={AFFILIATE_STATE: [CallbackQueryHandler(affiliates_info, pattern='^affiliate_referrals$'), CallbackQueryHandler(affiliates_info, pattern='^affiliate_commissions$'), CallbackQueryHandler(menu_callback, pattern='^menu_main$')]},
-            fallbacks=[CommandHandler('menu', menu_command)],
-            name="affiliate", persistent=True, allow_reentry=True))
-        # Suporte
-        self.application.add_handler(ConversationHandler(
-            entry_points=[CallbackQueryHandler(support_command, pattern='^btn_support$')],
-            states={SUPPORT_STATE: [CallbackQueryHandler(support_message, pattern='^support_faq$'), CallbackQueryHandler(support_command, pattern='^btn_support$'), CallbackQueryHandler(menu_callback, pattern='^menu_main$')]},
-            fallbacks=[CommandHandler('menu', menu_command)],
-            name="support", persistent=True, allow_reentry=True))
+        self.application.add_handler(ConversationHandler(entry_points=[CommandHandler('start', start_command)], states={BLOCKED_STATE: [CallbackQueryHandler(verify_subscription, pattern='^verify_subscription$'), CallbackQueryHandler(subscription_callback, pattern='^subscribe_channel$')]}, fallbacks=[CommandHandler('start', start_command)], name="start", persistent=True, allow_reentry=True))
+        self.application.add_handler(ConversationHandler(entry_points=[CommandHandler('menu', menu_command), CallbackQueryHandler(menu_callback, pattern='^menu_main$'), CallbackQueryHandler(menu_callback, pattern='^back_to_menu$')], states={MENU_MAIN: [CallbackQueryHandler(button_callback, pattern='^btn_')]}, fallbacks=[CommandHandler('menu', menu_command)], name="menu", persistent=True, allow_reentry=True))
+        self.application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(catalog_command, pattern='^btn_buy_giftcard$'), CallbackQueryHandler(catalog_command, pattern='^back_to_catalog$')], states={CATALOG_STATE: [CallbackQueryHandler(category_selection, pattern='^category_'), CallbackQueryHandler(catalog_command, pattern='^back_to_catalog$'), CallbackQueryHandler(menu_callback, pattern='^menu_main$')]}, fallbacks=[CommandHandler('menu', menu_command)], name="catalog", persistent=True, allow_reentry=True))
+        self.application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(product_view, pattern='^product_')], states={PRODUCT_STATE: [CallbackQueryHandler(confirm_purchase, pattern='^confirm_purchase_'), CallbackQueryHandler(category_selection, pattern='^back_to_category$'), CallbackQueryHandler(menu_callback, pattern='^menu_main$'), CallbackQueryHandler(menu_callback, pattern='^go_to_wallet$')]}, fallbacks=[CommandHandler('menu', menu_command)], name="product", persistent=True, allow_reentry=True))
+        self.application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(profile_command, pattern='^btn_my_profile$')], states={PROFILE_STATE: [CallbackQueryHandler(profile_callback, pattern='^go_to_wallet$'), CallbackQueryHandler(profile_callback, pattern='^btn_history$'), CallbackQueryHandler(profile_callback, pattern='^btn_affiliates$'), CallbackQueryHandler(menu_callback, pattern='^menu_main$')]}, fallbacks=[CommandHandler('menu', menu_command)], name="profile", persistent=True, allow_reentry=True))
+        self.application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(wallet_menu, pattern='^btn_add_balance$'), CallbackQueryHandler(wallet_menu, pattern='^go_to_wallet$')], states={WALLET_STATE: [CallbackQueryHandler(add_balance, pattern='^add_balance_pix$'), CallbackQueryHandler(add_balance, pattern='^quick_values$'), CallbackQueryHandler(menu_callback, pattern='^menu_main$')], PIX_VALUE_STATE: [CallbackQueryHandler(process_pix_value, pattern='^pix_value_'), MessageHandler(filters.TEXT & ~filters.COMMAND, process_pix_value), CallbackQueryHandler(menu_callback, pattern='^menu_main$')]}, fallbacks=[CommandHandler('menu', menu_command)], name="wallet", persistent=True, allow_reentry=True))
+        self.application.add_handler(ConversationHandler(entry_points=[CommandHandler('pix', pix_command), CallbackQueryHandler(pix_check, pattern='^check_pix_'), CallbackQueryHandler(pix_cancel, pattern='^cancel_pix_')], states={PIX_STATE: [CallbackQueryHandler(pix_check, pattern='^check_pix_'), CallbackQueryHandler(pix_cancel, pattern='^cancel_pix_'), CallbackQueryHandler(menu_callback, pattern='^menu_main$')]}, fallbacks=[CommandHandler('menu', menu_command)], name="pix", persistent=True, allow_reentry=True))
+        self.application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(history_command, pattern='^btn_history$')], states={HISTORY_STATE: [CallbackQueryHandler(history_detail, pattern='^history_page_'), CallbackQueryHandler(history_detail, pattern='^history_detail_'), CallbackQueryHandler(history_detail, pattern='^history_back$'), CallbackQueryHandler(menu_callback, pattern='^menu_main$')]}, fallbacks=[CommandHandler('menu', menu_command)], name="history", persistent=True, allow_reentry=True))
+        self.application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(affiliates_command, pattern='^btn_affiliates$')], states={AFFILIATE_STATE: [CallbackQueryHandler(affiliates_info, pattern='^affiliate_referrals$'), CallbackQueryHandler(affiliates_info, pattern='^affiliate_commissions$'), CallbackQueryHandler(menu_callback, pattern='^menu_main$')]}, fallbacks=[CommandHandler('menu', menu_command)], name="affiliate", persistent=True, allow_reentry=True))
+        self.application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(support_command, pattern='^btn_support$')], states={SUPPORT_STATE: [CallbackQueryHandler(support_message, pattern='^support_faq$'), CallbackQueryHandler(support_command, pattern='^btn_support$'), CallbackQueryHandler(menu_callback, pattern='^menu_main$')]}, fallbacks=[CommandHandler('menu', menu_command)], name="support", persistent=True, allow_reentry=True))
 
-        # Admin
         from admin.handlers.dashboard import admin_dashboard, refresh_dashboard, DASHBOARD_STATE
-        from admin.handlers.users import admin_users_list, admin_user_detail, admin_user_info, admin_add_balance, admin_remove_balance, admin_process_balance, admin_block_user, USERS_LIST_STATE, USER_DETAIL_STATE, USER_EDIT_STATE
-        from admin.handlers.products import admin_products_list, admin_product_create, admin_product_create_step, admin_product_edit, admin_product_edit_field, admin_product_save_edit, admin_product_delete, admin_product_confirm_delete, PRODUCTS_LIST_STATE, PRODUCT_EDIT_STATE, PRODUCT_CREATE_STATE
-        from admin.handlers.stock import admin_stock_manage, admin_stock_add_select, admin_stock_add_items, admin_stock_process_items, admin_stock_available, admin_stock_view_items, admin_stock_export, STOCK_LIST_STATE, STOCK_ADD_STATE
-        from admin.handlers.payments import admin_payments_list, admin_payment_filter, admin_payment_detail, admin_payment_show_detail, PAYMENTS_LIST_STATE, PAYMENT_DETAIL_STATE
-        from admin.handlers.settings import admin_settings, admin_settings_pix, admin_settings_messages, admin_settings_edit_message, admin_settings_save_message, admin_test_pix_connection, SETTINGS_MAIN_STATE, SETTINGS_EDIT_STATE
-        from admin.handlers.notifications import admin_notifications, admin_toggle_notification, NOTIFICATIONS_STATE
+        from admin.handlers.users import admin_users_list, USERS_LIST_STATE
+        from admin.handlers.products import admin_products_list, PRODUCTS_LIST_STATE
+        from admin.handlers.stock import admin_stock_manage, STOCK_LIST_STATE
+        from admin.handlers.payments import admin_payments_list, PAYMENTS_LIST_STATE
+        from admin.handlers.settings import admin_settings, SETTINGS_MAIN_STATE
+        from admin.handlers.notifications import admin_notifications, NOTIFICATIONS_STATE
 
-        self.application.add_handler(ConversationHandler(
-            entry_points=[CommandHandler('admin', admin_dashboard), CallbackQueryHandler(admin_dashboard, pattern='^admin_dashboard$'), CallbackQueryHandler(admin_dashboard, pattern='^admin_back_to_dashboard$')],
-            states={DASHBOARD_STATE: [CallbackQueryHandler(admin_users_list, pattern='^admin_users$'), CallbackQueryHandler(admin_products_list, pattern='^admin_products$'), CallbackQueryHandler(admin_stock_manage, pattern='^admin_stock$'), CallbackQueryHandler(admin_payments_list, pattern='^admin_payments$'), CallbackQueryHandler(admin_settings, pattern='^admin_settings$'), CallbackQueryHandler(admin_notifications, pattern='^admin_notifications$')]},
-            fallbacks=[CommandHandler('admin', admin_dashboard)],
-            name="admin", persistent=True))
+        self.application.add_handler(ConversationHandler(entry_points=[CommandHandler('admin', admin_dashboard), CallbackQueryHandler(admin_dashboard, pattern='^admin_dashboard$'), CallbackQueryHandler(admin_dashboard, pattern='^admin_back_to_dashboard$')], states={DASHBOARD_STATE: [CallbackQueryHandler(admin_users_list, pattern='^admin_users$'), CallbackQueryHandler(admin_products_list, pattern='^admin_products$'), CallbackQueryHandler(admin_stock_manage, pattern='^admin_stock$'), CallbackQueryHandler(admin_payments_list, pattern='^admin_payments$'), CallbackQueryHandler(admin_settings, pattern='^admin_settings$'), CallbackQueryHandler(admin_notifications, pattern='^admin_notifications$')]}, fallbacks=[CommandHandler('admin', admin_dashboard)], name="admin", persistent=True))
 
         self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self._handle_unknown_text))
         self.application.add_error_handler(self._handle_error)
@@ -207,8 +149,7 @@ class GiftCardBot:
         try:
             if update and update.effective_message:
                 await update.effective_message.reply_text("❌ Ocorreu um erro. Use /start para reiniciar.")
-        except Exception:
-            pass
+        except Exception: pass
 
     async def start(self):
         try:
@@ -234,32 +175,13 @@ class GiftCardBot:
         except Exception as e:
             logger.error(f"❌ Erro durante limpeza: {e}")
 
-
-# ===========================================
-# PONTO DE ENTRADA PRINCIPAL
-# ===========================================
-
 if __name__ == '__main__':
-    try:
-        if sys.platform == 'win32':
-            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-        if not settings.BOT_TOKEN:
-            logger.error("=" * 50)
-            logger.error("❌ ERRO: BOT_TOKEN não configurado!")
-            logger.error("=" * 50)
-            sys.exit(1)
-        bot = GiftCardBot()
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(bot.start())
-    except KeyboardInterrupt:
-        logger.info("👋 Encerrado pelo usuário")
-    except RuntimeError as e:
-        if "event loop" in str(e).lower():
-            logger.info("Bot já está rodando...")
-        else:
-            logger.critical(f"💥 Erro: {e}", exc_info=True)
-            sys.exit(1)
-    except Exception as e:
-        logger.critical(f"💥 Erro crítico: {e}", exc_info=True)
+    if sys.platform == 'win32':
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    if not settings.BOT_TOKEN:
+        logger.error("=" * 50)
+        logger.error("❌ ERRO: BOT_TOKEN não configurado!")
+        logger.error("=" * 50)
         sys.exit(1)
+    bot = GiftCardBot()
+    asyncio.run(bot.start())
